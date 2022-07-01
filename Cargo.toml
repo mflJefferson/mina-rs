@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "nft_api",
+    "nft_shared",
+    "mina_nft_cli"
+]
