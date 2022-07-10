@@ -1,3 +1,5 @@
+use actix_cors::Cors;
+use actix_web::http::header;
 use actix_web::web::Json;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use nft_shared::utils::balance_batch::Wallet;
@@ -72,6 +74,13 @@ async fn owners(
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allowed_methods(vec!["GET"])
+                    .allowed_headers(vec![header::CONTENT_TYPE, header::ACCEPT])
+                    .max_age(3600),
+            )
             .route("/health_check", web::get().to(health_check))
             .route("/balance/{address}", web::get().to(balance_batch))
             .route("/events", web::get().to(events))
