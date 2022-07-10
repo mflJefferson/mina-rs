@@ -1,0 +1,226 @@
+openapi: 3.0.0
+servers: []
+info:
+  description: API destinada a consultar o saldo das carteiras na coleção Minabank Digital NFT Collection 1
+  version: "1.0.0"
+  title: Mina NFT API
+  contact:
+    email: mfljefferson@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: NFT
+paths:
+  /balance/{address}:
+    parameters:
+      - name: address
+        in: path
+        description: Endereço da carteira
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+    get:
+      summary: retorna saldo
+      operationId: balanceBatch
+      description: |
+        Consulta o saldo da carteira do usuário, agrupado pelo nível da NF
+      responses:
+        '200':
+          description: saldo carteira
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '400':
+          description: bad input parameter
+      tags:
+        - NFT
+  /owners:
+    parameters:
+      - name: cursor
+        in: query
+        description: O cursor retornado na última resposta (para pegar a próxima página)
+        required: false
+        schema:
+          type: string
+    get:
+      summary: retorna os donos das NFTs e seus respectivo saldos
+      operationId: owners
+      description: |
+        Retorna os donos das NFTs e seus respectivo saldos
+        Os donos não estão agrupados pelo ID do token, então podemos ter resultados como:
+        owner_of 0xaa...115c token_id 1 amount 20000,
+        owner_of 0xaa...115c token_id 2 amount 2800
+        etc..
+      responses:
+        '200':
+          description: donos das NFTs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Query'
+        '400':
+          description: bad input parameter
+      tags:
+        - NFT
+  /events:
+    parameters:
+      - name: block
+        in: query
+        description: A partir de qual bloco os eventos devem ser buscados
+        required: false
+        schema:
+          type: integer
+    get:
+      summary: Retorna os eventos TransferSingle e TransferBatch
+      operationId: events
+      description: |
+        Retorna os eventos TransferSingle e TransferBatch a partir do bloco nos parametros,
+        ou a partir do bloco inicial do Smart Contract quando parametro é nulo.
+        Pode ser usado para guardar os valores em um banco de dados, e sincronizar mais tarde utilizando o número do último bloco salvo mais um (block_number + 1).
+
+        Caso os blocos não sejam utilizados na sincronização, deve-se evitar salvar eventos repetidos utilizando os campos transaction_hash e log_index.
+        A transaction_hash por si só pode repetir, pos vários clientes web3 podem dispara o evento TransferSingle múltiplas vezes na mesma transação,
+        então o log_index deve ser verificado para garantir que não seja um evento repetido.
+      responses:
+        '200':
+          description: donos das NFTs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Events'
+        '400':
+          description: bad input parameter
+      tags:
+        - NFT
+
+components:
+  schemas:
+    Event:
+      properties:
+        transaction_hash:
+          type: string
+          example: "0xd330…0b9b"
+        log_index:
+          type: integer
+          example: 150
+        block_number:
+          type: integer
+          example: 15102261
+        from:
+          type: string
+          example: "0x181b2818e9ed7bf364138ecea2edcbf32a6b28eb"
+        to:
+          type: string
+          example: "0xa68873bad36dea3aabb94ac78e4a95063d7574f3"
+        tier_1:
+          type: integer
+          example: 1
+        tier_2:
+          type: integer
+          example: 0
+        tier_3:
+          type: integer
+          example: 0
+        tier_4:
+          type: integer
+          example: 0
+        tier_5:
+          type: integer
+          example: 0
+        tier_6:
+          type: integer
+          example: 0
+        tier_7:
+          type: integer
+          example: 0
+
+      type: object
+    Events:
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+      type: object
+    Balance:
+      type: object
+      properties:
+        address:
+          type: string
+          example: 0x181b…28eb
+        tier_1:
+          type: integer
+          example: 0
+        tier_2:
+          type: integer
+          example: 0
+        tier_3:
+          type: integer
+          example: 0
+        tier_4:
+          type: integer
+          example: 0
+        tier_5:
+          type: integer
+          example: 0
+        tier_6:
+          type: integer
+          example: 0
+        tier_7:
+          type: integer
+          example: 0
+    Owner:
+      type: object
+      properties:
+        token_address:
+          type: string
+          example: "0xaa6b31c759e98d38d5a6ddbb4ed58f076183115c"
+        token_id:
+          type: string
+          example: 1
+        contract_type:
+          type: string
+          example: ERC1155
+        owner_of:
+          type: string
+          example: "0xa68873bad36dea3aabb94ac78e4a95063d7574f3"
+        block_number:
+          type: string
+          example: "15102333"
+        block_number_minted:
+          type: string
+          example: "14799868"
+        token_uri:
+          type: string
+          example: https://ipfs.moralis.io:2053/ipfs/bafybeidlatnmjvi3uyzogxfa2ukg3rvqe5f3jc5kypugvoavi5j6crwnsi/2.json
+        amount:
+          type: string
+          example: 1
+        token_hash:
+          type: string
+          example: "3e8601b575c23364408aa03fa7e08054"
+    Query:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 20
+        page:
+          type: integer
+          example: 1
+        page_size:
+          type: integer
+          example: 100
+        cursor:
+          type: string
+          example: string
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/Owner'
+
+

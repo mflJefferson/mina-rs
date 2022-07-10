@@ -6,7 +6,6 @@ use serde::Serialize;
 use std::ops::Index;
 use std::str::FromStr;
 use web3::contract::Contract;
-use web3::transports::Http;
 use web3::types::{Address, BlockNumber as web3_BlockNumber, FilterBuilder, U64};
 
 #[derive(Debug, Serialize)]
@@ -60,14 +59,12 @@ impl Event {
 }
 
 #[derive(Debug, Serialize)]
-struct Response {
+pub struct Response {
     events: Vec<Event>,
 }
 
-pub async fn events(block: u64) -> Result<String, CustomResponseErrors> {
-    let t = web3::transports::Http::new(
-        "https://eth-rinkeby.alchemyapi.io/v2/B9gXQzuzwdGzwgINlmYmvQGD7Gfr6Sbi",
-    );
+pub async fn events(block: u64) -> Result<Response, CustomResponseErrors> {
+    let t = web3::transports::Http::new(dotenv!("ALCHEMY_ENDPOINT"));
     let transport = match t {
         Ok(transport) => transport,
         Err(_error) => {
@@ -78,13 +75,13 @@ pub async fn events(block: u64) -> Result<String, CustomResponseErrors> {
     };
     let web3 = web3::Web3::new(transport);
 
-    let address = Address::from_str("0xec966AaaD6D468faDF7E4148b9222c6aee8bB767").unwrap();
+    let address = Address::from_str("0xAA6b31c759e98D38D5a6DDbb4ED58F076183115C").unwrap();
     let contract =
         Contract::from_json(web3.eth(), address, include_bytes!("../res/mina_abi.json")).unwrap();
 
     let block_number: U64 = format!("{:x}", block).parse().unwrap();
     let from_block = web3_BlockNumber::Number(block_number);
-    let latest = web3_BlockNumber::Latest;
+
     let filter = FilterBuilder::default()
         .address(vec![contract.address()])
         .from_block(from_block)
@@ -103,7 +100,7 @@ pub async fn events(block: u64) -> Result<String, CustomResponseErrors> {
 
     let logs = match l {
         Ok(log) => log,
-        Err(e) => {
+        Err(_e) => {
             return Err(ConnectionProblems(String::from("Error getting event logs")));
         }
     };
@@ -129,7 +126,7 @@ pub async fn events(block: u64) -> Result<String, CustomResponseErrors> {
 
         let decoded_data = match decoded_data_op {
             Ok(decoded_data) => decoded_data,
-            Err(e) => {
+            Err(_e) => {
                 return Err(ConnectionProblems(String::from(
                     "Error decoding event data",
                 )));
@@ -174,5 +171,5 @@ pub async fn events(block: u64) -> Result<String, CustomResponseErrors> {
         response.events.push(event);
     }
 
-    Ok(serde_json::to_string(&response).unwrap())
+    Ok(response)
 }

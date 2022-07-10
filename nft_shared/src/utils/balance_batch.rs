@@ -7,7 +7,7 @@ use web3::contract::{Contract, Options};
 use web3::types::{Address, U256};
 
 #[derive(Debug, Serialize)]
-struct Wallet {
+pub struct Wallet {
     address: String,
     tier_1: u64,
     tier_2: u64,
@@ -18,9 +18,9 @@ struct Wallet {
     tier_7: u64,
 }
 
-pub async fn balance(address: &str) -> Result<String, CustomResponseErrors> {
+pub async fn balance(address: &str) -> Result<Wallet, CustomResponseErrors> {
     let t = web3::transports::Http::new(
-        "https://eth-rinkeby.alchemyapi.io/v2/B9gXQzuzwdGzwgINlmYmvQGD7Gfr6Sbi",
+        "https://eth-mainnet.g.alchemy.com/v2/cBwN5ZXIZkf_C8g5t_aWAloZ9p2RQ7BS",
     );
     let transport = match t {
         Ok(transport) => transport,
@@ -39,7 +39,7 @@ pub async fn balance(address: &str) -> Result<String, CustomResponseErrors> {
         Err(_error) => return Err(InvalidAddress(String::from("Invalid address"))),
     };
 
-    let contract_address = Address::from_str("0xec966AaaD6D468faDF7E4148b9222c6aee8bB767").unwrap();
+    let contract_address = Address::from_str("0xAA6b31c759e98D38D5a6DDbb4ED58F076183115C").unwrap();
 
     let contract = Contract::from_json(
         web3.eth(),
@@ -73,5 +73,5 @@ pub async fn balance(address: &str) -> Result<String, CustomResponseErrors> {
         tier_7: u64::try_from(balance[6]).unwrap(),
     };
 
-    Ok(serde_json::to_string(&wallet).unwrap())
+    Ok(wallet)
 }

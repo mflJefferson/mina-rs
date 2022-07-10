@@ -7,16 +7,21 @@ struct Cli {
     address: Option<String>,
     #[clap(short, long, value_parser)]
     block: Option<u64>,
+    #[clap(short, long, value_parser, default_value = "")]
+    cursor: String,
+    #[clap(short, long, action)]
+    owners: bool,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
     match cli.address.as_deref() {
         Some(address) => {
-            let balance = nft_shared::balance(address);
+            let balance = nft_shared::balance(address).await;
             match balance {
-                Ok(result) => println!("{}", result),
+                Ok(result) => println!("{}", serde_json::to_string(&result).unwrap()),
                 Err(error) => {
                     eprintln!("{}", error.to_json())
                 }
@@ -27,9 +32,9 @@ fn main() {
 
     match cli.block {
         Some(block) => {
-            let events = nft_shared::events(block);
+            let events = nft_shared::events(block).await;
             match events {
-                Ok(result) => println!("{}", result),
+                Ok(result) => println!("{}", serde_json::to_string(&result).unwrap()),
                 Err(error) => {
                     eprintln!("{}", error.to_json())
                 }
@@ -37,4 +42,15 @@ fn main() {
         }
         _ => {}
     };
+
+    if cli.owners {
+        let query_result = nft_shared::owners(&cli.cursor).await;
+        match query_result {
+            Ok(result) => println!("{}", serde_json::to_string(&result).unwrap()),
+            Err(error) => {
+                eprintln!("{}", error.to_json())
+            }
+        };
+    }
+    Ok(())
 }
