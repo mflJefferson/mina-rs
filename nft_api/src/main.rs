@@ -1,5 +1,3 @@
-mod errors;
-
 use actix_web::web::Json;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use nft_shared::utils::balance_batch::Wallet;
