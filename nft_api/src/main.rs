@@ -77,7 +77,7 @@ async fn main() -> std::io::Result<()> {
             .route("/events", web::get().to(events))
             .route("/owners", web::get().to(owners))
     })
-    .bind("127.0.0.1:8000")?
+    .bind("0.0.0.0:8000")?
     .run()
     .await
 }
