@@ -11,7 +11,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
 
-RUN cargo build --release --bin mina_nft_cli
+RUN cargo build --release --bin nft_api
 
 FROM debian:bullseye-slim AS runtime
 
@@ -24,6 +24,6 @@ RUN apt-get update -y \
 && apt-get clean -y \
 && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/release/mina_nft_cli mina_nft_cli
+COPY --from=builder /app/target/release/nft_api nft_api
 
-ENTRYPOINT ["./mina_nft_cli"]
+ENTRYPOINT ["./nft_api"]
