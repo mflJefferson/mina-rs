@@ -1,5 +1,7 @@
 openapi: 3.0.0
-servers: []
+servers:
+  - url: https://mina-nft-hhzaw.ondigitalocean.app/
+    description: Staging Server
 info:
   description: API destinada a consultar o saldo das carteiras na coleção Minabank Digital NFT Collection 1
   version: "1.0.0"
